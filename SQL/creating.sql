@@ -44,4 +44,4 @@ $$ LANGUAGE plpgsql;
 
 -- call createTable();
 
-DROP PROCEDURE createTable;
+-- DROP PROCEDURE createTable;
