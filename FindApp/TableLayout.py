@@ -1,6 +1,6 @@
 from PyQt5.QtWidgets import (QMainWindow,QWidget, QLabel, QLineEdit,  QPushButton,
                              QApplication, QMessageBox,QAction,QGridLayout,
-                             QTableWidget, QTableWidgetItem, QToolBar)
+                             QTableWidget, QTableWidgetItem, QToolBar   )
 from PyQt5.QtCore import Qt,QCoreApplication,QRect,QSize
 from PyQt5.QtGui import QPainter, QColor, QFont,QIcon
 
@@ -15,13 +15,14 @@ def execSQL():
     execute SQL query
 
     """
-    conn = psycopg2.connect(dbname='postgres', user='postgres', password='36512', host='localhost')
+    conn = psycopg2.connect(dbname='nn', user='postgres', password='36512', host='localhost')
     conn.autocommit = True
     cursor = conn.cursor()
 
-    cursor.execute("select * from ПОКУПКА")
+    cursor.execute("select * from v_child")
     frame = cursor.fetchall()
     features=[feature[0] for feature in cursor.description]
+    print(features)
     return frame, features
 
 def initUI(self):
@@ -71,6 +72,6 @@ def initUI(self):
 
 
     self.setGeometry(200, 100, 500, 400)
-    # self.adjustSize()
+    table.adjustSize()
 
     self.show()

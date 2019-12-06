@@ -1,6 +1,6 @@
 from PyQt5.QtWidgets import (QMainWindow,QWidget, QLabel, QLineEdit,  QPushButton,
 							 QApplication, QMessageBox,QAction,QGridLayout,
-							 QTableWidget, QTableWidgetItem,QInputDialog)
+							 QTableWidget, QTableWidgetItem,QInputDialog,QDesktopWidget)
 from PyQt5.QtCore import Qt,QCoreApplication,QRect, QTimer ,QSize
 from PyQt5.QtGui import QPainter, QColor, QFont,QIcon
 from PyQt5.Qt import QVBoxLayout
@@ -34,6 +34,7 @@ class FindApp(QMainWindow):
 		TG=TextGetter.TextGetter()
 		self.textAbout=TG.get_textAbout()
 		self.AboutCounter=1
+		self.timerFlag=True
 		self.timer_itr=0
 		self.initUI()
 
@@ -68,7 +69,7 @@ class FindApp(QMainWindow):
 		self.setLayout(layout)
 
 		"""Find Rebel toolbar botton"""
-		findAction = QAction(QIcon('image/find.png'), 'View Database', self)
+		findAction = QAction(QIcon('image/find.png'), 'Find Rebel', self)
 		findAction.setShortcut('Ctrl+F')
 		findAction.setStatusTip('Find Rebel')
 		findAction.triggered.connect(self.findAction)
@@ -130,7 +131,17 @@ class FindApp(QMainWindow):
 		self.toolbar.setIconSize(QSize(40, 40))
 
 
-		self.setGeometry(400, 100, 700, 450)
+		"""# TODO: """
+
+		self.titleEdit = QLineEdit(self)
+		self.titleEdit.setAlignment(Qt.AlignCenter)
+		self.titleEdit.resize(250,30)
+		self.titleEdit.setFont(QFont("Arial",14))
+		self.titleEdit.move(210,240)
+		self.titleEdit.setHidden(True)
+
+
+		self.setGeometry(300,100,700, 450)
 		self.show()
 
 	def viewDBBtn(self):
@@ -147,16 +158,20 @@ class FindApp(QMainWindow):
 
 	""" launching timer for the about text"""
 	def infoActionBtn(self,event):
-		self.AboutCounter += 1
-		self.label_result.setText(self.textAbout[self.AboutCounter])
-		self.timer.start(2800)
+		if self.timerFlag:
+			self.AboutCounter += 1
+			self.label_result.setText(self.textAbout[self.AboutCounter])
+			self.timer.start(2800)
 
 	"""timer text trigger"""
 	def tick(self):
+		if self.AboutCounter == len(self.textAbout)-2:
+			self.titleEdit.setHidden(False)
 		if self.AboutCounter == len(self.textAbout)-1:
 			self.label_result.setText(self.textAbout[self.AboutCounter])
-			self.AboutCounter = 1
+			self.timerFlag=False
 			self.timer.stop()
+
 		else:
 			self.AboutCounter += 1
 			self.label_result.setText(self.textAbout[self.AboutCounter])
