@@ -30,18 +30,11 @@ AS $$
     DECLARE MeetingDate   VARCHAR  := 'MeetingDate';
 
 BEGIN
-    EXECUTE format('CREATE TABLE %I (%I SERIAL PRIMARY KEY, %I varchar(30), %I integer
-                    );', tblName1, ID, ShortName, SchoolID);
-    EXECUTE format('CREATE TABLE %I (%I SERIAL PRIMARY KEY, %I integer, %I varchar(30), %I integer, %I varchar(30)
-                    );', tblName2, ID, SchoolID, SchoolName, NumbOfPupils, Place);
-
-    EXECUTE format('CREATE TABLE %I (%I SERIAL PRIMARY KEY, %I varchar(30), %I date, %I varchar(30)
-                    );', tblName3, ID, MeetingName, MeetingDate, Place);
-
-    -- EXECUTE format('CREATE TABLE %I (%I SERIAL PRIMARY KEY, %I integer, %I integer
-    --                 );', tblName4, ID, VisiterID, MeetingID);
-
-    RAISE NOTICE 'Table names (%, %, %)', tblName1, tblName2, tblName3;
+    EXECUTE format('CREATE TEMP TABLE '|| tblName1 ||' ( '|| ID ||' SERIAL PRIMARY KEY, '|| ShortName ||' varchar(30), '|| Age ||' integer, '|| SchoolID ||' integer);');
+    EXECUTE format('CREATE TEMP TABLE '|| tblName2 ||' ( '|| ID ||' SERIAL PRIMARY KEY, '|| SchoolID ||' integer, '|| SchoolName ||' varchar(30), '|| NumbOfPupils ||' integer, '|| Place ||' varchar(30));');
+    EXECUTE format('CREATE TEMP TABLE '|| tblName3 ||' ( '|| ID ||' SERIAL PRIMARY KEY, '|| MeetingName ||' varchar(128), '|| MeetingDate ||' date, '|| Place ||' varchar(64));');
+    EXECUTE format('CREATE TEMP TABLE '|| tblName4 ||' ( '|| ID ||' SERIAL PRIMARY KEY, '|| VisiterID ||' integer, '|| MeetingID ||' integer);');
+    RAISE NOTICE '(%, %, %, %) created', tblName1, tblName2, tblName3, tblName4;
 END;
 $$;
 
@@ -49,48 +42,54 @@ $$;
 CREATE OR REPLACE PROCEDURE fillTable(IN tblName name)
 LANGUAGE plpgsql
 AS $$
-
     DECLARE tblName1 VARCHAR     := 'Child';
     DECLARE tblName2 VARCHAR     := 'School';
     DECLARE tblName3 VARCHAR     := 'Meeting';
-
-    DECLARE ID VARCHAR           := 'ID';
-    DECLARE Age VARCHAR          := 'Age';
-    DECLARE ShortName VARCHAR    := 'ShortName';
-    DECLARE Phone VARCHAR        := 'Phone';
-    DECLARE SchoolID VARCHAR     := 'SchoolID';
-    DECLARE SchoolName VARCHAR   := 'SchoolName';
-    DECLARE NumbOfPupils VARCHAR := 'NumbOfPupils';
-    DECLARE Place VARCHAR        := 'Place';
-    DECLARE MeetingName VARCHAR  := 'MeetingName';
+    DECLARE tblName4 VARCHAR     := 'Visit';
 
 BEGIN
-
-    IF tblName = tblName1
-    THEN
-        INSERT INTO "Child" ("ShortName", "SchoolID") VALUES ('Ivan Golunov', 3);
-        INSERT INTO "Child" ("ShortName", "SchoolID") VALUES ('Alexey Navalny', 3);
-        INSERT INTO "Child" ("ShortName", "SchoolID") VALUES ('Dmitriy Medvedev', 3);
-        INSERT INTO "Child" ("ShortName", "SchoolID") VALUES ('Michael Saakoshvili', 5);
-        INSERT INTO "Child" ("ShortName", "SchoolID") VALUES ('Vladimir Putin', 5);
-        INSERT INTO "Child" ("ShortName", "SchoolID") VALUES ('Vlad Ivanov', 88);
-        INSERT INTO "Child" ("ShortName", "SchoolID") VALUES ('Pasha Tekhnik', 288);
-        INSERT INTO "Child" ("ShortName", "SchoolID") VALUES ('Oxxxymiron', 288);
-
+    -- ShortName, Age, SchoolID
+    IF tblName = tblName1 THEN
+        INSERT INTO Child (ShortName,Age,SchoolID) VALUES ('Ivan Golunov', 33, 3);
+        INSERT INTO Child (ShortName,Age,SchoolID) VALUES ('Alexey Navalny', 42, 3);
+        INSERT INTO Child (ShortName,Age,SchoolID) VALUES ('Dmitriy Medvedev', 51, 3);
+        INSERT INTO Child (ShortName,Age,SchoolID) VALUES ('Michael Saakoshvili', 60, 5);
+        INSERT INTO Child (ShortName,Age,SchoolID) VALUES ('Vladimir Putin', 999, 5);
+        INSERT INTO Child (ShortName,Age,SchoolID) VALUES ('Vlad Ivanov', 18, 88);
+        INSERT INTO Child (ShortName,Age,SchoolID) VALUES ('Pasha Tekhnik', 15, 288);
+        INSERT INTO Child (ShortName,Age,SchoolID) VALUES ('Oxxxymiron', 12, 288);
         RAISE NOTICE 'Table (%) filled', tblName1;
     END IF;
 
-    IF tblName = tblName2
+    IF tblName = tblName2 THEN
     -- SchoolID, SchoolName, NumbOfPupils, Place
-    THEN
-        INSERT INTO "School" ("SchoolID", "SchoolName", "NumbOfPupils", "Place") VALUES (3, 'School of Oppositioners', 567, 'Rodionova, p.184');
-        INSERT INTO "School" ("SchoolID", "SchoolName", "NumbOfPupils", "Place") VALUES (5, 'Academy of US Government', 890, 'Lvovskaya, 1b');
-        INSERT INTO "School" ("SchoolID", "SchoolName", "NumbOfPupils", "Place") VALUES (88, 'Autozavod Harlem Shakers', 1000, 'metro Park of Culture');
-        INSERT INTO "School" ("SchoolID", "SchoolName", "NumbOfPupils", "Place") VALUES (288, 'Flying potatoes college', 228, 'Kremlin');
-
+        INSERT INTO School (SchoolID, SchoolName, NumbOfPupils, Place) VALUES (3,  'School of Oppositioners', 567, 'Rodionova, p.184');
+        INSERT INTO School (SchoolID, SchoolName, NumbOfPupils, Place) VALUES (5,  'Academy of US Government', 890, 'Lvovskaya, 1b');
+        INSERT INTO School (SchoolID, SchoolName, NumbOfPupils, Place) VALUES (88, 'Autozavod Harlem Shakers', 1000, 'metro Park of Culture');
+        INSERT INTO School (SchoolID, SchoolName, NumbOfPupils, Place) VALUES (288,'Flying potatoes college', 228, 'Kremlin');
         RAISE NOTICE 'Table (%) filled', tblName2;
     END IF;
 
+    IF tblName = tblName3 THEN
+    -- MeetingName, MeetingDate, Place
+        INSERT INTO Meeting (MeetingName, MeetingDate, Place) VALUES ('Cancelation of 4. art of Constitution', 'February-4-1990' ,'Taganka');
+        INSERT INTO Meeting (MeetingName, MeetingDate, Place) VALUES ('Freedom for Golunov','August-31-2019', 'Saharova dst.');
+        INSERT INTO Meeting (MeetingName, MeetingDate, Place) VALUES ('Bolotnaya','May-6-2012','Bolotnaya square');
+        RAISE NOTICE 'Table (%) filled', tblName3;
+    END IF;
+
+    IF tblName = tblName4 THEN
+    --  VisiterID, MeetingID, MeetingDate, Place
+        INSERT INTO Visit (VisiterID, MeetingID) VALUES (9, 2);
+        INSERT INTO Visit (VisiterID, MeetingID) VALUES (10, 3);
+        INSERT INTO Visit (VisiterID, MeetingID) VALUES (11, 1);
+        INSERT INTO Visit (VisiterID, MeetingID) VALUES (12, 2);
+        INSERT INTO Visit (VisiterID, MeetingID) VALUES (13, 3);
+        INSERT INTO Visit (VisiterID, MeetingID) VALUES (14, 1);
+        INSERT INTO Visit (VisiterID, MeetingID) VALUES (15, 2);
+        INSERT INTO Visit (VisiterID, MeetingID) VALUES (16, 3);
+        RAISE NOTICE 'Table (%) filled', tblName4;
+    END IF;
 END;
 $$;
 
@@ -102,17 +101,7 @@ AS $$
     DECLARE tblName3 VARCHAR     := 'Meeting';
     DECLARE tblName4 VARCHAR     := 'Visit';
 BEGIN
-    DROP TABLE "Child", "School", "Meeting";
-    RAISE NOTICE 'Table deleted (%, %, %)', tblName1, tblName2, tblName3;
+    DROP TABLE child, school, meeting, visit;
+    RAISE NOTICE 'Table deleted (%, %, %, %)', tblName1, tblName2, tblName3, tblName4;
 END;
 $$;
-
--------------------------------------------
--------------------views ------------------
-CREATE VIEW V_CHILD AS SELECT * FROM "Child";
-CREATE VIEW V_SCHOOL AS SELECT * FROM "School";
-CREATE VIEW V_MEETING AS SELECT * FROM "Meeting";
-CREATE VIEW V_VISIT AS SELECT * FROM "Visit";
-------------------------------------------------
-
--- DROP PROCEDURE createTable;
