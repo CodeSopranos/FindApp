@@ -30,10 +30,10 @@ AS $$
     DECLARE MeetingDate   VARCHAR  := 'MeetingDate';
 
 BEGIN
-    EXECUTE format('CREATE TEMP TABLE '|| tblName1 ||' ( '|| ID ||' SERIAL PRIMARY KEY, '|| ShortName ||' varchar(30), '|| Age ||' integer, '|| SchoolID ||' integer);');
-    EXECUTE format('CREATE TEMP TABLE '|| tblName2 ||' ( '|| ID ||' SERIAL PRIMARY KEY, '|| SchoolID ||' integer, '|| SchoolName ||' varchar(30), '|| NumbOfPupils ||' integer, '|| Place ||' varchar(30));');
-    EXECUTE format('CREATE TEMP TABLE '|| tblName3 ||' ( '|| ID ||' SERIAL PRIMARY KEY, '|| MeetingName ||' varchar(128), '|| MeetingDate ||' date, '|| Place ||' varchar(64));');
-    EXECUTE format('CREATE TEMP TABLE '|| tblName4 ||' ( '|| ID ||' SERIAL PRIMARY KEY, '|| VisiterID ||' integer, '|| MeetingID ||' integer);');
+    EXECUTE format('CREATE   TABLE '|| tblName1 ||' ( '|| ID ||' SERIAL PRIMARY KEY, '|| ShortName ||' varchar(30), '|| Age ||' integer, '|| SchoolID ||' integer);');
+    EXECUTE format('CREATE   TABLE '|| tblName2 ||' ( '|| ID ||' SERIAL PRIMARY KEY, '|| SchoolID ||' integer, '|| SchoolName ||' varchar(30), '|| NumbOfPupils ||' integer, '|| Place ||' varchar(30));');
+    EXECUTE format('CREATE   TABLE '|| tblName3 ||' ( '|| ID ||' SERIAL PRIMARY KEY, '|| MeetingName ||' varchar(128), '|| MeetingDate ||' date, '|| Place ||' varchar(64));');
+    EXECUTE format('CREATE   TABLE '|| tblName4 ||' ( '|| ID ||' SERIAL PRIMARY KEY, '|| VisiterID ||' integer, '|| MeetingID ||' integer);');
     RAISE NOTICE '(%, %, %, %) created', tblName1, tblName2, tblName3, tblName4;
 END;
 $$;

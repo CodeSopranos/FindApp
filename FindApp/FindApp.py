@@ -1,6 +1,6 @@
 from PyQt5.QtWidgets import (QMainWindow,QWidget, QLabel, QLineEdit,  QPushButton,
 							 QApplication, QMessageBox,QAction,QGridLayout,
-							 QTableWidget, QTableWidgetItem,QInputDialog,QDesktopWidget)
+							 QTableWidget, QTableWidgetItem,QInputDialog,QDesktopWidget,QCompleter)
 from PyQt5.QtCore import Qt,QCoreApplication,QRect, QTimer ,QSize
 from PyQt5.QtGui import QPainter, QColor, QFont,QIcon
 from PyQt5.Qt import QVBoxLayout
@@ -12,8 +12,10 @@ import time
 
 from FindApp import TableLayout
 from FindApp import TextGetter
+from FindApp import DataGetter
 importlib.reload(TableLayout)
 importlib.reload(TextGetter)
+importlib.reload(DataGetter)
 
 """change fir to work project"""
 path='C:\\Users\\Greg\\Google Диск\\ПМИ\\курсы\\базы данных\\проект\\git'
@@ -72,7 +74,7 @@ class FindApp(QMainWindow):
 		findAction = QAction(QIcon('image/find.png'), 'Find Rebel', self)
 		findAction.setShortcut('Ctrl+F')
 		findAction.setStatusTip('Find Rebel')
-		findAction.triggered.connect(self.findAction)
+		findAction.triggered.connect(self.findActionBtn)
 
 		"""View DB toolbar botton"""
 		viewDBAction = QAction(QIcon('image/database.png'), 'View Database', self)
@@ -91,6 +93,12 @@ class FindApp(QMainWindow):
 		hideAction.setShortcut('Ctrl+H')
 		hideAction.setStatusTip('Hide')
 		hideAction.triggered.connect(self.hideTbAction)
+
+		"""ADD toolbar botton"""
+		insertAction = QAction(QIcon('image/add.png'), 'Add a rebel', self)
+		insertAction.setShortcut('Ctrl+A')
+		insertAction.setStatusTip('Add a rebel')
+		insertAction.triggered.connect(self.insertAction)
 
 		"""SHOW toolbar botton"""
 		showAction = QAction(QIcon('image/show.png'), 'Show toolbar', self)
@@ -125,21 +133,34 @@ class FindApp(QMainWindow):
 		self.toolbar.addAction(viewDBAction)
 		self.toolbar.addAction(infoAction)
 		self.toolbar.addAction(hideAction)
+		self.toolbar.addAction(insertAction)
 		self.toolbar.addAction(exitAction)
 
 		self.toolbar.setToolButtonStyle( Qt.ToolButtonTextUnderIcon)
 		self.toolbar.setIconSize(QSize(40, 40))
 
 
-		"""# TODO: """
+		"""text edit line for rebel search by name """
+		self.lineEdit = QLineEdit(self)
+		self.lineEdit.setPlaceholderText('Golunov...')
+		self.lineEdit.setAlignment(Qt.AlignCenter)
+		self.lineEdit.resize(250,30)
+		self.lineEdit.setFont(QFont("Arial",14))
+		self.lineEdit.move(210,240)
+		self.lineEdit.setHidden(True)
 
-		self.titleEdit = QLineEdit(self)
-		self.titleEdit.setAlignment(Qt.AlignCenter)
-		self.titleEdit.resize(250,30)
-		self.titleEdit.setFont(QFont("Arial",14))
-		self.titleEdit.move(210,240)
-		self.titleEdit.setHidden(True)
+		"""auto completer for edit line using @DataGetter"""
+		DG=DataGetter.DataGetter(dbname='nn')
+		names,feature = DG.executeQuery('select * from v_childnames')
+		names=[item[0] for item in names]
+		completer = QCompleter(names, self.lineEdit)
+		self.lineEdit.setCompleter(completer)
 
+		self.findBtn = QPushButton('Find',self)
+		self.findBtn.setToolTip('Найдите этих ... найдите родителей этих...')
+		self.findBtn.move(280,330)
+		self.findBtn.setHidden(True)
+		self.findBtn.clicked.connect(self.lineEditAction)
 
 		self.setGeometry(300,100,700, 450)
 		self.show()
@@ -166,24 +187,50 @@ class FindApp(QMainWindow):
 	"""timer text trigger"""
 	def tick(self):
 		if self.AboutCounter == len(self.textAbout)-2:
-			self.titleEdit.setHidden(False)
+			self. lineEdit.setHidden(False)
+			self.findBtn.setHidden(False)
+
+
 		if self.AboutCounter == len(self.textAbout)-1:
 			self.label_result.setText(self.textAbout[self.AboutCounter])
 			self.timerFlag=False
 			self.timer.stop()
-
 		else:
 			self.AboutCounter += 1
 			self.label_result.setText(self.textAbout[self.AboutCounter])
 
 
 
-	def findAction(self,event):
+	def findActionBtn(self,event):
 		text, ok = QInputDialog.getText(self, 'Find Rebel',
 			'Введите фамилию:')
+		self.getRebel(text)
+
+	def lineEditAction(self,event):
+		text = self.lineEdit.text()
+		self.getRebel(text)
+
+	def getRebel(self,name):
+		DG=DataGetter.DataGetter(dbname='nn')
+		id_lst,feature = DG.findRebelQuery(name)
+		id_lst=[item[0] for item in id_lst]
+		if None in id_lst:
+			id_lst.remove(None)
+		print(id_lst,feature)
+		if len(id_lst)>0:
+			for id in id_lst:
+				info_str,feature=DG.getRebelDataByID(id)
+				print(info_str,feature)
+				response = QMessageBox.question(self,'Info about '+name, str(info_str[0]),QMessageBox.Ok)
+
 
 	def hideTbAction(self,event):
 		self.toolbar.setHidden(True)
+
+
+	def insertAction(self,event):
+		pass
+		# TODO: write form like NAME LASTNAME AGE MEETING
 
 	def showTbAction(self,event):
 		self.toolbar.setHidden(False)
@@ -192,3 +239,7 @@ class FindApp(QMainWindow):
 		self.close()
 		QWidget.__init__(self)
 		self.initUI()
+
+	def onChangedAction(self,text):
+		self.lbl.setText(text)
+		self.lbl.setHidden(False)

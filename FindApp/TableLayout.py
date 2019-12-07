@@ -1,29 +1,15 @@
 from PyQt5.QtWidgets import (QMainWindow,QWidget, QLabel, QLineEdit,  QPushButton,
                              QApplication, QMessageBox,QAction,QGridLayout,
-                             QTableWidget, QTableWidgetItem, QToolBar   )
+                             QTableWidget, QTableWidgetItem, QToolBar,QHeaderView  )
 from PyQt5.QtCore import Qt,QCoreApplication,QRect,QSize
 from PyQt5.QtGui import QPainter, QColor, QFont,QIcon
 
 import sys
+import importlib
 import psycopg2
 
-
-def execSQL():
-
-    """
-
-    execute SQL query
-
-    """
-    conn = psycopg2.connect(dbname='nn', user='postgres', password='36512', host='localhost')
-    conn.autocommit = True
-    cursor = conn.cursor()
-
-    cursor.execute("select * from v_child")
-    frame = cursor.fetchall()
-    features=[feature[0] for feature in cursor.description]
-    print(features)
-    return frame, features
+from FindApp import DataGetter
+importlib.reload(DataGetter)
 
 def initUI(self):
 
@@ -57,13 +43,15 @@ def initUI(self):
     grid_layout = QGridLayout()
     central_widget.setLayout(grid_layout)
 
-    frame,features=execSQL()
+    DG=DataGetter.DataGetter(dbname='nn')
+    frame,features=DG.executeQuery('select * from v_full_info')
 
     table = QTableWidget(self)
     table.setColumnCount(len(frame[0]))
     table.setRowCount(len(frame))
     table.setHorizontalHeaderLabels(features)
     table.resizeColumnsToContents()
+
     for i in range(len(frame)):
         for j in range(len(frame[0])):
             table.setItem(i, j, QTableWidgetItem(str(frame[i][j])))
@@ -72,6 +60,9 @@ def initUI(self):
 
 
     self.setGeometry(200, 100, 500, 400)
-    table.adjustSize()
+    header = table.horizontalHeader()
+    for i in range(len(frame[0])):
+        header.setSectionResizeMode(i, QHeaderView.ResizeToContents)
+    header.setStretchLastSection(True)
 
     self.show()
