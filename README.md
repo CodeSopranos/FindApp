@@ -1,3 +1,3 @@
 # FindApp
 FindApp - python application  using PyQT5 and PostgreSQL
-![ScreenShot](https://raw.github.com/iamilyasedunov/FindApp/tree/dev/image/diagram.png)
+[![diagram.png](https://i.postimg.cc/7ZTRJBdn/diagram.png)](https://postimg.cc/68tcDh98)
