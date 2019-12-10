@@ -30,10 +30,10 @@ AS $$
     DECLARE MeetingDate   VARCHAR  := 'MeetingDate';
 
 BEGIN
-    EXECUTE format('CREATE   TABLE '|| tblName1 ||' ( '|| ID ||' SERIAL PRIMARY KEY, '|| ShortName ||' varchar(30), '|| Age ||' integer, '|| SchoolID ||' integer);');
-    EXECUTE format('CREATE   TABLE '|| tblName2 ||' ( '|| ID ||' SERIAL PRIMARY KEY, '|| SchoolID ||' integer, '|| SchoolName ||' varchar(30), '|| NumbOfPupils ||' integer, '|| Place ||' varchar(30));');
-    EXECUTE format('CREATE   TABLE '|| tblName3 ||' ( '|| ID ||' SERIAL PRIMARY KEY, '|| MeetingName ||' varchar(128), '|| MeetingDate ||' date, '|| Place ||' varchar(64));');
-    EXECUTE format('CREATE   TABLE '|| tblName4 ||' ( '|| ID ||' SERIAL PRIMARY KEY, '|| VisiterID ||' integer, '|| MeetingID ||' integer);');
+    EXECUTE format('CREATE TABLE '|| tblName1 ||' ( '|| ID ||' SERIAL PRIMARY KEY, '|| ShortName ||' varchar(30), '|| Age ||' integer, '|| SchoolID ||' integer);');
+    EXECUTE format('CREATE TABLE '|| tblName2 ||' ( '|| ID ||' SERIAL PRIMARY KEY, '|| SchoolID ||' integer, '|| SchoolName ||' varchar(30), '|| NumbOfPupils ||' integer, '|| Place ||' varchar(30));');
+    EXECUTE format('CREATE TABLE '|| tblName3 ||' ( '|| ID ||' SERIAL PRIMARY KEY, '|| MeetingName ||' varchar(128), '|| MeetingDate ||' date, '|| Place ||' varchar(64));');
+    EXECUTE format('CREATE TABLE '|| tblName4 ||' ( '|| ID ||' SERIAL PRIMARY KEY, '|| VisiterID ||' integer, '|| MeetingID ||' integer);');
     RAISE NOTICE '(%, %, %, %) created', tblName1, tblName2, tblName3, tblName4;
 END;
 $$;
@@ -80,28 +80,60 @@ BEGIN
 
     IF tblName = tblName4 THEN
     --  VisiterID, MeetingID, MeetingDate, Place
-        INSERT INTO Visit (VisiterID, MeetingID) VALUES (9, 2);
-        INSERT INTO Visit (VisiterID, MeetingID) VALUES (10, 3);
-        INSERT INTO Visit (VisiterID, MeetingID) VALUES (11, 1);
-        INSERT INTO Visit (VisiterID, MeetingID) VALUES (12, 2);
-        INSERT INTO Visit (VisiterID, MeetingID) VALUES (13, 3);
-        INSERT INTO Visit (VisiterID, MeetingID) VALUES (14, 1);
-        INSERT INTO Visit (VisiterID, MeetingID) VALUES (15, 2);
-        INSERT INTO Visit (VisiterID, MeetingID) VALUES (16, 3);
+        INSERT INTO Visit (VisiterID, MeetingID) VALUES (1, 2);
+        INSERT INTO Visit (VisiterID, MeetingID) VALUES (2, 3);
+        INSERT INTO Visit (VisiterID, MeetingID) VALUES (3, 1);
+        INSERT INTO Visit (VisiterID, MeetingID) VALUES (4, 2);
+        INSERT INTO Visit (VisiterID, MeetingID) VALUES (5, 3);
+        INSERT INTO Visit (VisiterID, MeetingID) VALUES (6, 1);
+        INSERT INTO Visit (VisiterID, MeetingID) VALUES (7, 2);
+        INSERT INTO Visit (VisiterID, MeetingID) VALUES (8, 3);
         RAISE NOTICE 'Table (%) filled', tblName4;
     END IF;
 END;
 $$;
 
-CREATE OR REPLACE PROCEDURE dropTables()
+-- insertIntoBase(ID, 'ShortName', Age, SchoolID);
+CREATE OR REPLACE PROCEDURE insertIntoBase(IN ID_ integer, IN ShortName_ varchar(30), IN Age_ integer, IN SchoolID_ integer, IN MeetingID_ integer)
 LANGUAGE plpgsql
 AS $$
-    DECLARE tblName1 VARCHAR     := 'Child';
-    DECLARE tblName2 VARCHAR     := 'School';
-    DECLARE tblName3 VARCHAR     := 'Meeting';
-    DECLARE tblName4 VARCHAR     := 'Visit';
 BEGIN
-    DROP TABLE child, school, meeting, visit;
-    RAISE NOTICE 'Table deleted (%, %, %, %)', tblName1, tblName2, tblName3, tblName4;
+    IF EXISTS (SELECT * FROM Child) THEN
+        INSERT INTO Child(ID, ShortName, Age, SchoolId) VALUES (ID_, ShortName_, Age_, SchoolID_);
+    ELSE 
+        RAISE NOTICE 'Table Child doesnt exists';
+    END IF;
+
+    IF EXISTS (SELECT * FROM Child) THEN
+        INSERT INTO Visit(VisiterID, MeetingID) VALUES (ID_, MeetingID_);
+    ELSE  
+        RAISE NOTICE 'Table Visit doesnt exists';
+    END IF;
 END;
 $$;
+
+-- select clearTables('{tablename_1, tablename_2, ... , tablename_n}');
+CREATE OR REPLACE FUNCTION clearTables(tablenames text[]) RETURNS int AS
+$func$
+DECLARE
+    tablename text;
+BEGIN
+    FOREACH tablename IN ARRAY tablenames LOOP
+        EXECUTE FORMAT('DELETE FROM %s', tablename);
+    END LOOP;
+    RETURN 1;
+END
+$func$ LANGUAGE plpgsql;
+
+--select dropAllTAbles('{tablename_1, tablename_2, ... , tablename_n}')
+CREATE OR REPLACE FUNCTION dropTables(tablenames text[]) RETURNS int AS
+$func$
+DECLARE
+    tablename text;
+BEGIN
+    FOREACH tablename IN ARRAY tablenames LOOP
+        EXECUTE FORMAT('DROP TABLE %s', tablename);
+    END LOOP;
+    RETURN 1;
+END
+$func$ LANGUAGE plpgsql;
