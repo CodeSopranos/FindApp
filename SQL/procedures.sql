@@ -98,17 +98,16 @@ BEGIN
 END;
 $$;
 
-
 -- return id by name meeting name and by name school
 
 CREATE OR REPLACE FUNCTION getIdMeetingName(ikey text)
   returns integer
   AS
 $func$
-DECLARE 
+DECLARE
   ret_id integer;
 BEGIN
-    SELECT Meeting.ID INTO ret_id FROM Meeting WHERE Meeting.Meetingname = ikey; 
+    SELECT Meeting.ID INTO ret_id FROM Meeting WHERE Meeting.Meetingname = ikey;
     return ret_id; --< return this variable
 END
 $func$ LANGUAGE plpgsql;
@@ -117,10 +116,10 @@ CREATE OR REPLACE FUNCTION getIdSchoolName(ikey text)
   returns integer
   AS
 $func$
-DECLARE 
+DECLARE
   ret_id integer;
 BEGIN
-    SELECT School.SchoolID INTO ret_id FROM School WHERE School.SchoolName = ikey; 
+    SELECT School.SchoolID INTO ret_id FROM School WHERE School.SchoolName = ikey;
     return ret_id; --< return this variable
 END
 $func$ LANGUAGE plpgsql;
@@ -134,8 +133,8 @@ DECLARE
     MeetingID_  integer;
     ID_      integer;
 BEGIN
-    SchoolID_ = getIdMeetingName(MeetingName_);
-    MeetingID_ = getIdSchoolName(SchoolName_);
+    MeetingID_= getIdMeetingName(MeetingName_);
+    SchoolID_ = getIdSchoolName(SchoolName_);
     -- RAISE NOTICE '';
     INSERT INTO Child(ShortName, Age, SchoolId) VALUES (ShortName_, Age_, SchoolID_);
     ID_ := currval('child_id_seq');
@@ -218,6 +217,6 @@ LANGUAGE plpgsql
 AS $$
 BEGIN
     DELETE FROM Child WHERE Child.id = ID_;
-    DELETE FROM Visit WHERE Visit.VisiterID = ID_; 
+    DELETE FROM Visit WHERE Visit.VisiterID = ID_;
 END;
 $$;

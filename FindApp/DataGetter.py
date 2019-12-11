@@ -27,10 +27,7 @@ class DataGetter:
 
     def fillTables(self):
         try:
-            self.cursor.execute('call fillTable(\'Child\');')
-            self.cursor.execute('call fillTable(\'School\');')
-            self.cursor.execute('call fillTable(\'Meeting\');')
-            self.cursor.execute('call fillTable(\'Visit\');')
+            self.cursor.execute('call fillAllTables();')
         except:
             print('FILL TABLES ERROR')
 
@@ -40,13 +37,21 @@ class DataGetter:
         except:
             print('CLER TABLES ERROR')
 
+    def insertIntoBase(self, info_dct):
+        info_str = '\''+info_dct['name'] + '\''+', ' +'\''+ info_dct['age']+'\'' \
+                   + ', ' +'\''+ info_dct['school'] +'\''+ ', ' + '\''+info_dct['meeting']+'\''
+        try:
+            print(info_str)
+            self.cursor.execute('call insertIntoBase('+info_str+');')
+        except:
+            print('INSERT TABLES ERROR')
 
 
     def executeScript(self,script_name):
-        try:
-            self.cursor.execute(open('sql/'+script_name, "r").read())
-        except:
-            print( script_name+' ERROR')
+        # try:
+        self.cursor.execute(open('sql/'+script_name, "r").read())
+        # except:
+        #     print( script_name+' ERROR')
 
     def executeQuery(self,query):
         self.cursor.execute(query)

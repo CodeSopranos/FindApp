@@ -41,6 +41,19 @@ class FindApp(QMainWindow):
         self.AboutCounter=1
         self.timerFlag=True
         self.timer_itr=0
+
+        """the first creating DB """
+        DG=DataGetter.DataGetter(dbname='postgres')
+        DG.createDB('nn')
+
+        """filling crated DB"""
+        self.DG=DataGetter.DataGetter(dbname='nn')
+        self.DG.executeScript('procedures.sql')
+        self.DG.createTables()
+        self.DG.executeScript('views.sql')
+        frame,features=self.DG.executeQuery('select * from v_full_info')
+        if len(frame) == 0:
+            self.DG.fillTables()
         self.initUI()
 
     def initUI(self):
@@ -173,20 +186,20 @@ class FindApp(QMainWindow):
         self.lineEdit.move(210,240)
         self.lineEdit.setHidden(True)
 
-        """the first creating DB """
-        DG=DataGetter.DataGetter(dbname='postgres')
-        DG.createDB('nn')
-
-        """filling crated DB"""
-        DG=DataGetter.DataGetter(dbname='nn')
-        DG.executeScript('procedures.sql')
-        DG.createTables()
-        DG.fillTables()
-        DG.executeScript('views.sql')
+        # """the first creating DB """
+        # DG=DataGetter.DataGetter(dbname='postgres')
+        # DG.createDB('nn')
+        #
+        # """filling crated DB"""
+        # DG=DataGetter.DataGetter(dbname='nn')
+        # DG.executeScript('procedures.sql')
+        # DG.createTables()
+        # DG.fillTables()
+        # DG.executeScript('views.sql')
 
 
         """auto completer for edit line using @DataGetter"""
-        names,feature = DG.executeQuery('select * from v_childNames;')
+        names,feature = self.DG.executeQuery('select * from v_childNames;')
         names=[item[0] for item in names]
         names=list(set(names))
         completer = QCompleter(names, self.lineEdit)
@@ -257,10 +270,9 @@ class FindApp(QMainWindow):
             id_lst.remove(None)
         if len(id_lst) == 0:
             response = QMessageBox.question(self,
-                         'Good news','<font size="14">Резуальтат по запросу <i>' + name + '</i> не найден</font>',
-                          QMessageBox.Ok)
+                                    'Good news','<font size="14">Резуальтат по запросу <i>' + name + '</i> не найден</font>',
+                                          QMessageBox.Ok)
             return
-        print(id_lst,feature)
         if len(id_lst)>0:
             for id in id_lst:
                 info_str,feature=DG.getRebelDataByID(id)
@@ -279,12 +291,24 @@ class FindApp(QMainWindow):
 
     def insertAction(self,event):
         FormLayout.FormLayout(self)
-        # FormLayout.initUI(self)
 
     def removeRebelAction(self,event):
         text, ok = QInputDialog.getText(self, 'Find Rebel',
             'Введите имя:')
-        # self.getRebel(text)
+        DG=DataGetter.DataGetter(dbname='nn')
+        id_lst,feature = DG.findRebelQuery(text)
+        id_lst=[item[0] for item in id_lst]
+        if None in id_lst:
+            id_lst.remove(None)
+        for id in id_lst:
+            info_str,feature=DG.getRebelDataByID(id)
+            info_str=info_str[0][0].split(' | ')
+            print(info_str,feature)
+            output_str='<font size="18"> Хотите удалить запись о: '+str(info_str[0]+'?')
+            response = QMessageBox.question(self,'Remove rebel',output_str,QMessageBox.Yes | QMessageBox.No)
+            if response == QMessageBox.Yes:
+                DG.executeQuery('call deleteFromBaseById(\''+id+'\')')
+
 
     def clearAction(self,event):
         reply = QMessageBox.question(self,'clear','Хотите очистить все записи?',
@@ -314,5 +338,6 @@ class FindApp(QMainWindow):
                   'school':self.combo_school.currentText(),
                   'meeting':self.combo_meeting.currentText()}
         DG = DataGetter.DataGetter(dbname='nn')
-        # TODO: insert into base
+        DG.insertIntoBase(info_dct)
+        self.profile.close()
         print(info_dct)
