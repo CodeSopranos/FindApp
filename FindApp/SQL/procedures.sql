@@ -1,4 +1,3 @@
--- call createTables();
 CREATE OR REPLACE PROCEDURE createTables()
 LANGUAGE plpgsql
 AS $$
@@ -85,16 +84,31 @@ BEGIN
 END;
 $$;
 
+
+--call fillAllTables()
+CREATE OR REPLACE PROCEDURE fillAllTables()
+LANGUAGE plpgsql
+AS $$
+BEGIN
+    CALL fillTable('School');
+    CALL fillTable('Child');
+    CALL fillTable('Meeting');
+    CALL fillTable('Visit');
+
+END;
+$$;
+
+
 -- return id by name meeting name and by name school
 
 CREATE OR REPLACE FUNCTION getIdMeetingName(ikey text)
   returns integer
   AS
 $func$
-DECLARE
+DECLARE 
   ret_id integer;
 BEGIN
-    SELECT Meeting.ID INTO ret_id FROM Meeting WHERE Meeting.Meetingname = ikey;
+    SELECT Meeting.ID INTO ret_id FROM Meeting WHERE Meeting.Meetingname = ikey; 
     return ret_id; --< return this variable
 END
 $func$ LANGUAGE plpgsql;
@@ -103,26 +117,28 @@ CREATE OR REPLACE FUNCTION getIdSchoolName(ikey text)
   returns integer
   AS
 $func$
-DECLARE
+DECLARE 
   ret_id integer;
 BEGIN
-    SELECT School.SchoolID INTO ret_id FROM School WHERE School.SchoolName = ikey;
+    SELECT School.SchoolID INTO ret_id FROM School WHERE School.SchoolName = ikey; 
     return ret_id; --< return this variable
 END
 $func$ LANGUAGE plpgsql;
 
 -- insertIntoBase(ID, 'ShortName', Age, SchoolID);
-CREATE OR REPLACE PROCEDURE insertIntoBase(IN ID_ integer, IN ShortName_ varchar(30), IN Age_ integer, IN SchoolName_ varchar(30), IN MeetingName_ varchar(128))
+CREATE OR REPLACE PROCEDURE insertIntoBase(IN ShortName_ varchar(30), IN Age_ integer, IN SchoolName_ varchar(30), IN MeetingName_ varchar(128))
 LANGUAGE plpgsql
 AS $$
 DECLARE
-    SchoolID_ integer;
-    MeetingID_ integer;
+    SchoolID_   integer;
+    MeetingID_  integer;
+    ID_      integer;
 BEGIN
     SchoolID_ = getIdMeetingName(MeetingName_);
     MeetingID_ = getIdSchoolName(SchoolName_);
     -- RAISE NOTICE '';
-    INSERT INTO Child(ID, ShortName, Age, SchoolId) VALUES (ID_, ShortName_, Age_, SchoolID_);
+    INSERT INTO Child(ShortName, Age, SchoolId) VALUES (ShortName_, Age_, SchoolID_);
+    ID_ := currval('child_id_seq');
     INSERT INTO Visit(VisiterID, MeetingID) VALUES (ID_, MeetingID_);
 END;
 $$;
@@ -184,5 +200,24 @@ BEGIN
   select place INTO shoolplace FROM Child,School WHERE  Child.ID = temp_id AND Child.SchoolID=School.SchoolID;
   select meetingname INTO last_meeting_name FROM Meeting,Visit WHERE  Visit.VisiterID = temp_id AND Visit.MeetingID = Meeting.ID  ORDER BY Meeting.MeetingDate desc limit 1;
 	rebel_data=name || ' | ' || rebel_age || ' | ' || temp_shool || ' | ' || shoolplace || ' | ' || last_meeting_name;
+END;
+$$;
+
+--call dropAllTables()
+CREATE OR REPLACE PROCEDURE dropAllTables()
+LANGUAGE plpgsql
+AS $$
+BEGIN
+    PERFORM dropTables('{Visit, Child, Meeting, School}');
+END;
+$$;
+
+--select deleteFromBaseById(ID)
+CREATE OR REPLACE PROCEDURE deleteFromBaseById(IN ID_ integer)
+LANGUAGE plpgsql
+AS $$
+BEGIN
+    DELETE FROM Child WHERE Child.id = ID_;
+    DELETE FROM Visit WHERE Visit.VisiterID = ID_; 
 END;
 $$;
