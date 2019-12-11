@@ -1,8 +1,4 @@
--- connectBase(name)
--- из процедуры нельзя коннектиться к дб,
--- предлагаю звать через PyQT
-
--- создание таблиц, пока без Visited
+-- call createTables();
 CREATE OR REPLACE PROCEDURE createTables()
 LANGUAGE plpgsql
 AS $$
@@ -95,10 +91,10 @@ CREATE OR REPLACE FUNCTION getIdMeetingName(ikey text)
   returns integer
   AS
 $func$
-DECLARE 
+DECLARE
   ret_id integer;
 BEGIN
-    SELECT Meeting.ID INTO ret_id FROM Meeting WHERE Meeting.Meetingname = ikey; 
+    SELECT Meeting.ID INTO ret_id FROM Meeting WHERE Meeting.Meetingname = ikey;
     return ret_id; --< return this variable
 END
 $func$ LANGUAGE plpgsql;
@@ -107,10 +103,10 @@ CREATE OR REPLACE FUNCTION getIdSchoolName(ikey text)
   returns integer
   AS
 $func$
-DECLARE 
+DECLARE
   ret_id integer;
 BEGIN
-    SELECT School.SchoolID INTO ret_id FROM School WHERE School.SchoolName = ikey; 
+    SELECT School.SchoolID INTO ret_id FROM School WHERE School.SchoolName = ikey;
     return ret_id; --< return this variable
 END
 $func$ LANGUAGE plpgsql;
@@ -157,3 +153,36 @@ BEGIN
     RETURN 1;
 END
 $func$ LANGUAGE plpgsql;
+
+--call findRebel(name)
+CREATE OR REPLACE PROCEDURE findRebel(INOUT name VARCHAR(1000))
+LANGUAGE plpgsql
+AS $$
+declare temp VARCHAR(100);
+BEGIN
+  select ID INTO temp FROM Child WHERE  ShortName Like  name;
+	name=temp;
+END;
+$$;
+
+--call getRebelDataByID(rebel_data)
+CREATE OR REPLACE PROCEDURE getRebelDataByID(INOUT rebel_data VARCHAR(200))
+LANGUAGE plpgsql
+AS $$
+declare temp_id int;
+declare name VARCHAR(100);
+declare rebel_age int;
+declare temp_shool VARCHAR(100);
+declare shoolplace VARCHAR(100);
+declare last_meeting_name VARCHAR(100);
+
+BEGIN
+  temp_id=CAST (rebel_data AS INTEGER);
+  select ShortName INTO name FROM Child WHERE  Child.ID = temp_id;
+  select age INTO rebel_age FROM Child WHERE  Child.ID = temp_id;
+  select SchoolName INTO temp_shool FROM Child,School WHERE  Child.ID = temp_id AND Child.SchoolID=School.SchoolID;
+  select place INTO shoolplace FROM Child,School WHERE  Child.ID = temp_id AND Child.SchoolID=School.SchoolID;
+  select meetingname INTO last_meeting_name FROM Meeting,Visit WHERE  Visit.VisiterID = temp_id AND Visit.MeetingID = Meeting.ID  ORDER BY Meeting.MeetingDate desc limit 1;
+	rebel_data=name || ' | ' || rebel_age || ' | ' || temp_shool || ' | ' || shoolplace || ' | ' || last_meeting_name;
+END;
+$$;

@@ -1,6 +1,6 @@
 from PyQt5.QtWidgets import (QMainWindow,QWidget, QLabel, QLineEdit,  QPushButton,
                              QApplication, QMessageBox,QAction,QGridLayout,
-                             QTableWidget, QTableWidgetItem, QToolBar,QHeaderView  )
+                             QTableWidget, QTableWidgetItem, QToolBar,QHeaderView, QAbstractScrollArea)
 from PyQt5.QtCore import Qt,QCoreApplication,QRect,QSize
 from PyQt5.QtGui import QPainter, QColor, QFont,QIcon
 
@@ -47,6 +47,11 @@ def initUI(self):
     frame,features=DG.executeQuery('select * from v_full_info')
 
     table = QTableWidget(self)
+    table.setSizeAdjustPolicy(QAbstractScrollArea.AdjustToContents)
+    if len(frame) == 0:
+        reply = QMessageBox.question(self,'!!!','Таблицы пусты!',QMessageBox.Ok)
+        self.backBtnAction()
+        return
     table.setColumnCount(len(frame[0]))
     table.setRowCount(len(frame))
     table.setHorizontalHeaderLabels(features)
@@ -59,7 +64,7 @@ def initUI(self):
     grid_layout.addWidget(table, 0, 0)
 
 
-    self.setGeometry(200, 100, 500, 400)
+    # self.setGeometry(300, 150, 850, 400)
     header = table.horizontalHeader()
     for i in range(len(frame[0])):
         header.setSectionResizeMode(i, QHeaderView.ResizeToContents)
