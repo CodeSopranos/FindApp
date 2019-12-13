@@ -220,3 +220,12 @@ BEGIN
     DELETE FROM Visit WHERE Visit.VisiterID = ID_;
 END;
 $$;
+
+--update child info by id
+CREATE OR REPLACE PROCEDURE updateChildInfo(IN ID_ integer, IN NAME_ VARCHAR(100),IN AGE_ integer)
+LANGUAGE plpgsql
+AS $$
+BEGIN
+    UPDATE Child SET ShortName = NAME_ , Age = AGE_ where ID = ID_;
+END;
+$$;

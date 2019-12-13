@@ -4,7 +4,7 @@ from PyQt5.QtWidgets import (QMainWindow,QWidget, QLabel, QLineEdit,  QPushButto
                              QDesktopWidget,QCompleter,QDialog,QDialogButtonBox)
 from PyQt5.QtCore import Qt,QCoreApplication,QRect, QTimer ,QSize
 from PyQt5.QtGui import QPainter, QColor, QFont,QIcon
-from PyQt5.Qt import QVBoxLayout, QFormLayout
+from PyQt5.Qt import QVBoxLayout, QFormLayout ,QTextDocument
 
 import sys
 import os
@@ -15,12 +15,10 @@ from FindApp import TableLayout
 from FindApp import TextGetter
 from FindApp import DataGetter
 from FindApp import FormLayout
-importlib.reload(TableLayout)
-importlib.reload(TextGetter)
-importlib.reload(DataGetter)
-importlib.reload(FormLayout)
+from FindApp import RebelInfoLayout
+from FindApp import UpdateForm
 
-"""change fir to work project"""
+"""change dir to work project"""
 path='C:\\Users\\Greg\\Google Диск\\ПМИ\\курсы\\базы данных\\проект\\git'
 os.chdir(path)
 
@@ -29,29 +27,31 @@ class FindApp(QMainWindow):
 
     """
 
-    class FindApp main layout of application
+    @class FindApp main window layout of application
 
     """
 
     def __init__(self):
         super().__init__()
 
-        TG=TextGetter.TextGetter()
-        self.textAbout=TG.get_textAbout()
-        self.AboutCounter=1
-        self.timerFlag=True
-        self.timer_itr=0
+        """variables for the about info"""
+        TG = TextGetter.TextGetter()
+        self.textAbout = TG.get_textAbout()
+        self.AboutCounter = 1
+        self.timerFlag = True
+        self.timer_itr = 0
 
         """the first creating DB """
-        DG=DataGetter.DataGetter(dbname='postgres')
-        DG.createDB('nn')
+        DG=DataGetter.DataGetter(dbname = 'postgres')
+        self.current_db = 'nn'
+        DG.createDB(self.current_db)
 
         """filling crated DB"""
-        self.DG=DataGetter.DataGetter(dbname='nn')
+        self.DG=DataGetter.DataGetter(dbname = self.current_db)
         self.DG.executeScript('procedures.sql')
         self.DG.createTables()
         self.DG.executeScript('views.sql')
-        frame,features=self.DG.executeQuery('select * from v_full_info')
+        frame,features = self.DG.executeQuery('select * from v_full_info')
         if len(frame) == 0:
             self.DG.fillTables()
         self.initUI()
@@ -132,7 +132,6 @@ class FindApp(QMainWindow):
         switchAction = QAction(QIcon('image/switcher.png'), 'Switch DB', self)
         switchAction.setShortcut('Ctrl+S')
         switchAction.setStatusTip('Switch DB')
-        # switchAction.triggered.connect(self.removeRebelAction)
 
         """SHOW toolbar botton"""
         showAction = QAction(QIcon('image/show.png'), 'Show toolbar', self)
@@ -169,7 +168,7 @@ class FindApp(QMainWindow):
         self.toolbar.addAction(insertAction)
         self.toolbar.addAction(removeAction)
         self.toolbar.addAction(clearAction)
-        self.toolbar.addAction(switchAction)
+        # self.toolbar.addAction(switchAction)
         self.toolbar.addAction(infoAction)
         self.toolbar.addAction(exitAction)
 
@@ -186,22 +185,9 @@ class FindApp(QMainWindow):
         self.lineEdit.move(210,240)
         self.lineEdit.setHidden(True)
 
-        # """the first creating DB """
-        # DG=DataGetter.DataGetter(dbname='postgres')
-        # DG.createDB('nn')
-        #
-        # """filling crated DB"""
-        # DG=DataGetter.DataGetter(dbname='nn')
-        # DG.executeScript('procedures.sql')
-        # DG.createTables()
-        # DG.fillTables()
-        # DG.executeScript('views.sql')
-
-
         """auto completer for edit line using @DataGetter"""
         names,feature = self.DG.executeQuery('select * from v_childNames;')
-        names=[item[0] for item in names]
-        names=list(set(names))
+        names = list(set(names))
         completer = QCompleter(names, self.lineEdit)
         self.lineEdit.setCompleter(completer)
 
@@ -214,7 +200,11 @@ class FindApp(QMainWindow):
         self.setGeometry(300,100,700, 450)
         self.show()
 
-    def viewDBBtn(self):
+
+    """botton actions"""
+
+    """view database tables toolbar botton action"""
+    def viewDBBtn(self,event):
         reply = QMessageBox.question(self, 'View DB',
             "Желаете посмотреть базу митингующих?", QMessageBox.Yes |
              QMessageBox.Yes, QMessageBox.No)
@@ -231,36 +221,35 @@ class FindApp(QMainWindow):
         if self.timerFlag:
             self.AboutCounter += 1
             self.label_result.setText(self.textAbout[self.AboutCounter])
-            self.timer.start(2800)
+            self.timer.start(4000)
 
     """timer text trigger"""
     def tick(self):
         if self.AboutCounter == len(self.textAbout)-2:
             self. lineEdit.setHidden(False)
             self.findBtn.setHidden(False)
-
-
+            self.timerFlag = False
         if self.AboutCounter == len(self.textAbout)-1:
             self.label_result.setText(self.textAbout[self.AboutCounter])
-            self.timerFlag=False
             self.timer.stop()
         else:
             self.AboutCounter += 1
             self.label_result.setText(self.textAbout[self.AboutCounter])
 
 
-
+    """find botton action"""
     def findActionBtn(self,event):
         text, ok = QInputDialog.getText(self, 'Find Rebel',
             'Введите имя:')
         self.getRebel(text)
 
+    """edit line action"""
     def lineEditAction(self,event):
         text = self.lineEdit.text()
         self.getRebel(text)
 
     def getRebel(self,name):
-        DG=DataGetter.DataGetter(dbname='nn')
+        DG=DataGetter.DataGetter(dbname = self.current_db)
         if len(name) == 0:
             response = QMessageBox.question(self,'!!!!','<font size="14">Empty string!</font>', QMessageBox.Ok)
             return
@@ -270,74 +259,90 @@ class FindApp(QMainWindow):
             id_lst.remove(None)
         if len(id_lst) == 0:
             response = QMessageBox.question(self,
-                                    'Good news','<font size="14">Резуальтат по запросу <i>' + name + '</i> не найден</font>',
-                                          QMessageBox.Ok)
+                'Good news','<font size="14">Резуальтат по запросу <i>' + name + '</i> не найден</font>',
+                QMessageBox.Ok)
             return
         if len(id_lst)>0:
-            for id in id_lst:
-                info_str,feature=DG.getRebelDataByID(id)
-                info_str=info_str[0][0].split(' | ')
-                print(info_str,feature)
-                output_str='<font size="26"> Name: '+str(info_str[0])
-                output_str+='<br>Age: '+str(info_str[1])
-                output_str+='<br>School: '+str(info_str[2])
-                output_str+='<br>SchoolPlace: '+str(info_str[3])+'</font>'
-                response = QMessageBox.question(self,'Info about '+name,output_str,QMessageBox.Ok)
+            self.last_found_id = id_lst[0]
+            info_str,feature = DG.getRebelDataByID(self.last_found_id)
+            info_str = info_str[0][0].split(' | ')
+            QWidget.__init__(self)
+            RebelInfoLayout.initUI(self,info_str)
 
 
+    """hide toolbar action"""
     def hideTbAction(self,event):
         self.toolbar.setHidden(True)
 
-
+    """insert rebel action"""
     def insertAction(self,event):
         FormLayout.FormLayout(self)
 
+    """remove rebel action"""
     def removeRebelAction(self,event):
         text, ok = QInputDialog.getText(self, 'Find Rebel',
             'Введите имя:')
-        DG=DataGetter.DataGetter(dbname='nn')
+        DG=DataGetter.DataGetter(dbname = self.current_db)
         id_lst,feature = DG.findRebelQuery(text)
         id_lst=[item[0] for item in id_lst]
         if None in id_lst:
             id_lst.remove(None)
+        if len(id_lst) == 0:
+            response = QMessageBox.question(self,'!!!','<font size="16"> Ничего не найдено!',QMessageBox.Yes )
+            return
         for id in id_lst:
-            info_str,feature=DG.getRebelDataByID(id)
-            info_str=info_str[0][0].split(' | ')
-            print(info_str,feature)
-            output_str='<font size="18"> Хотите удалить запись о: '+str(info_str[0]+'?')
+            info_str,feature = DG.getRebelDataByID(id)
+            info_str = info_str[0][0].split(' | ')
+            output_str = '<font size="17"> Хотите удалить запись о '+str(info_str[0]+'?')
             response = QMessageBox.question(self,'Remove rebel',output_str,QMessageBox.Yes | QMessageBox.No)
             if response == QMessageBox.Yes:
-                DG.executeQuery('call deleteFromBaseById(\''+id+'\')')
+                DG.executeQuery('call deleteFromBaseById(\'' + id + '\')')
 
-
+    """clear toolbar botton action"""
     def clearAction(self,event):
         reply = QMessageBox.question(self,'clear','Хотите очистить все записи?',
                                             QMessageBox.Yes | QMessageBox.No)
         if reply == QMessageBox.Yes:
-            DG=DataGetter.DataGetter(dbname='nn')
+            DG = DataGetter.DataGetter(dbname = self.current_db)
             DG.clearTables()
             reply = QMessageBox.question(self,'clear','Таблицы пусты!',QMessageBox.Ok)
         else:
             event.ignore()
 
+    """show toolbar botton action"""
     def showTbAction(self,event):
         self.toolbar.setHidden(False)
 
+    """back table layout botton action"""
     def backBtnAction(self):
         self.close()
         QWidget.__init__(self)
         self.initUI()
 
-    def onChangedAction(self,text):
-        self.lbl.setText(text)
-        self.lbl.setHidden(False)
+    def backAct(self):
+        self.close()
 
-    def accept(self):
-        info_dct={'name':self.name.text()+' '+self.lastname.text(),
-                  'age':self.age.text(),
-                  'school':self.combo_school.currentText(),
-                  'meeting':self.combo_meeting.currentText()}
-        DG = DataGetter.DataGetter(dbname='nn')
+    def updateBtnAction(self):
+        UpdateForm.UpdateForm(self)
+
+    """accept insertion into base action"""
+    def acceptInsert(self):
+        info_dct = {'name':self.name.text() + ' ' + self.lastname.text(),
+                    'age':self.age.text(),
+                    'school':self.combo_school.currentText(),
+                    'meeting':self.combo_meeting.currentText()}
+        DG = DataGetter.DataGetter(dbname = self.current_db)
         DG.insertIntoBase(info_dct)
         self.profile.close()
+        print(info_dct)
+
+
+    """accept update into base action"""
+    def acceptUpdate(self):
+        info_dct = {'id': self.last_found_id,
+                    'name': self.name.text() + ' ' + self.lastname.text(),
+                    'age': self.age.text()}
+        DG = DataGetter.DataGetter(dbname = self.current_db)
+        DG.updateRebelInfo(info_dct)
+        self.update_form.close()
         print(info_dct)

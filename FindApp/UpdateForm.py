@@ -12,7 +12,7 @@ import psycopg2
 from FindApp import DataGetter
 importlib.reload(DataGetter)
 
-class FormLayout:
+class UpdateForm:
 
     """
 
@@ -21,8 +21,9 @@ class FormLayout:
     """
 
     def __init__(self,main_window):
-        main_window.profile = QDialog(main_window)
-        main_window.profile.setWindowTitle('New Rebel')
+        main_window.update_form = QDialog()
+        main_window.update_form.setWindowTitle('Update Rebel Info')
+        main_window.update_form.setWindowIcon(QIcon('image/logo.png'))
         self.main_window = main_window
         self.initUI(main_window)
 
@@ -30,8 +31,6 @@ class FormLayout:
         main_window.name = QLineEdit()
         main_window.lastname = QLineEdit()
         main_window.age = QLineEdit()
-        main_window.school = QLineEdit()
-        main_window.schoolplace = QLineEdit()
 
         """setting validators"""
         reg_ex = QRegExp("([A-Z][a-z]{20})|([А-Я][а-я]{20})")
@@ -44,28 +43,15 @@ class FormLayout:
         main_window.age.setValidator(input_validator)
 
         layout = QFormLayout()
-        layout.addRow('Name:',main_window.name)
-        layout.addRow('Lastname:',main_window.lastname)
-        layout.addRow('Age:',main_window.age)
-
-        DG = DataGetter.DataGetter(dbname = main_window.current_db)
-        frame,features = DG.executeQuery('select * from v_schoolNames')
-        frame = list(set(frame))
-        main_window.combo_school = QComboBox()
-        main_window.combo_school.addItems(frame)
-        layout.addRow('Choose school:',main_window.combo_school)
-
-        frame,features=DG.executeQuery('select * from v_meetingNames')
-        main_window.combo_meeting = QComboBox()
-        frame = list(set(frame))
-        main_window.combo_meeting.addItems(frame)
-        layout.addRow('Choose meeting:',main_window.combo_meeting)
+        layout.addRow('Name:', main_window.name)
+        layout.addRow('Lastname:', main_window.lastname)
+        layout.addRow('Age:', main_window.age)
 
         QBtn = QDialogButtonBox.Ok | QDialogButtonBox.Cancel
         self.buttonBox = QDialogButtonBox(QBtn)
-        self.buttonBox.accepted.connect(main_window.acceptInsert)
-        self.buttonBox.rejected.connect(main_window.profile.reject)
+        self.buttonBox.accepted.connect(main_window.acceptUpdate)
+        self.buttonBox.rejected.connect(main_window.update_form.reject)
         layout.addWidget(self.buttonBox)
 
-        main_window.profile.setLayout(layout)
-        main_window.profile.show()
+        main_window.update_form.setLayout(layout)
+        main_window.update_form.exec()

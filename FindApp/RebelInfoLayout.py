@@ -11,13 +11,12 @@ import psycopg2
 from FindApp import DataGetter
 importlib.reload(DataGetter)
 
-def initUI(self):
-
+def initUI(self, info_str):
     """
 
-	@function initUi creating Table Layout
+    @function initUi creating Table Layout
 
-	"""
+    """
     self.setWindowTitle('FindApp')
     self.setWindowIcon(QIcon('image/logo.png'))
 
@@ -25,7 +24,13 @@ def initUI(self):
     backAction = QAction(QIcon('image/back.png'), 'Назад', self)
     backAction.setShortcut('Ctrl+Z')
     backAction.setStatusTip('back')
-    backAction.triggered.connect(self.backBtnAction)
+    backAction.triggered.connect(self.backAct)
+
+    """update toolbar botton"""
+    updateAction = QAction(QIcon('image/update.png'), 'Обновить', self)
+    updateAction.setShortcut('Ctrl+U')
+    updateAction.setStatusTip('update')
+    updateAction.triggered.connect(self.updateBtnAction)
 
     """setting status bar"""
     self.statusBar()
@@ -34,8 +39,9 @@ def initUI(self):
     toolbar = QToolBar('main')
     self.addToolBar(Qt.RightToolBarArea,toolbar)
     toolbar.addAction(backAction)
-    toolbar.setToolButtonStyle( Qt.ToolButtonTextUnderIcon)
-    toolbar.setIconSize(QSize(40, 40))
+    toolbar.addAction(updateAction)
+    toolbar.setToolButtonStyle(Qt.ToolButtonTextUnderIcon)
+    toolbar.setIconSize(QSize(30, 30))
 
     central_widget = QWidget(self)
     self.setCentralWidget(central_widget)
@@ -43,29 +49,28 @@ def initUI(self):
     grid_layout = QGridLayout()
     central_widget.setLayout(grid_layout)
 
-    DG = DataGetter.DataGetter(dbname = self.current_db)
-    frame,features = DG.executeQuery('select * from v_full_info',prepareFlag = False)
-
     table = QTableWidget(self)
     table.setSizeAdjustPolicy(QAbstractScrollArea.AdjustToContents)
 
-    if len(frame) == 0:
-        reply = QMessageBox.question(self,'!!!','Таблицы пусты!',QMessageBox.Ok)
-        self.backBtnAction()
-        return
-
-    table.setColumnCount(len(frame[0]))
-    table.setRowCount(len(frame))
-    table.setHorizontalHeaderLabels(features)
+    print(info_str)
+    table.setColumnCount(4)
+    table.setRowCount(1)
+    table.setHorizontalHeaderLabels(['Name','Age','School','Meeting'])
     table.resizeColumnsToContents()
 
-    for i in range(len(frame)):
-        for j in range(len(frame[0])):
-            table.setItem(i, j, QTableWidgetItem(str(frame[i][j])))
+    table.setItem(0, 0, QTableWidgetItem(info_str[0]))
+    table.setItem(0, 1, QTableWidgetItem(info_str[1]))
+    table.setItem(0, 2, QTableWidgetItem(info_str[2]))
+    table.setItem(0, 3, QTableWidgetItem(info_str[3]))
+
+    font = QFont()
+    font.setPointSize(16)
+    table.setFont(font)
     grid_layout.addWidget(table, 0, 0)
     header = table.horizontalHeader()
-    for i in range(len(frame[0])):
-        header.setSectionResizeMode(i, QHeaderView.ResizeToContents)
-    header.setStretchLastSection(True)
-
+    header.setSectionResizeMode(0, QHeaderView.ResizeToContents)
+    header.setSectionResizeMode(1, QHeaderView.ResizeToContents)
+    header.setSectionResizeMode(2, QHeaderView.ResizeToContents)
+    header.setSectionResizeMode(3, QHeaderView.ResizeToContents)
+    # header.setStretchLastSection(True)
     self.show()
