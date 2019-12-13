@@ -6,11 +6,6 @@ class TextGetter:
 	"""
 
 	def __init__(self):
-
-		"""
-		add texts types here and create getter methods e.g. textAbout and get_textAbout
-		"""
-
 		self.textAbout=[
             "Добропожаловать в FindApp!",
             "Выполнили:\n\n Илья Седунов \n и Вадим Альперович,\n\n 17ПМИ\n2019",
@@ -23,10 +18,7 @@ class TextGetter:
             "Authors: Sedunov & Alperovich \n 17PMI",
 			"А ваши дети в безопасности? Введите имя ребенка, чтобы узнать:"
           ]
+
+
 	def get_textAbout(self):
-
-		"""
-		@return textAbout a main "about" storytelling
-		"""
-
 		return self.textAbout
